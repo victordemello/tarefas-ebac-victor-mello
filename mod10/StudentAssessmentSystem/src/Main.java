@@ -3,12 +3,15 @@ import enumerator.ApprovalStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class Main {
     public static void main(String[] args) {
         System.out.println("==================================");
         System.out.println("Student grade assessment system");
         System.out.println("==================================");
+
+        List<String> ex = new Stack<>();
 
         Scanner sc = new Scanner(System.in);
         List<Double> studentGrades = new ArrayList<>();
