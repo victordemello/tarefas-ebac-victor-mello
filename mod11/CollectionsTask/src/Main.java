@@ -43,10 +43,10 @@ public class Main {
                 .map(String::trim)
                 .forEach(name -> {
                     if (name.contains("- M") || name.contains("-M")) {
-                        genderGroups.computeIfAbsent("Masculino", k -> new ArrayList<>())
+                        genderGroups.computeIfAbsent("Male", k -> new ArrayList<>())
                                 .add(name.replaceAll("- M|-M", "").trim());
                     } else if (name.contains("- F") || name.contains("-F")) {
-                        genderGroups.computeIfAbsent("Feminino", k -> new ArrayList<>())
+                        genderGroups.computeIfAbsent("Female", k -> new ArrayList<>())
                                 .add(name.replaceAll("- F|-F", "").trim());
                     }
                 });
