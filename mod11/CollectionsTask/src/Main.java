@@ -51,7 +51,6 @@ public class Main {
                     }
                 });
 
-        // Ordena as listas de nomes dentro do mapa
         genderGroups.forEach((gender, names) -> names.sort(String::compareTo));
         return genderGroups;
     }
