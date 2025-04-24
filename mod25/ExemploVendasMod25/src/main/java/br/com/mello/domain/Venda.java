@@ -32,7 +32,7 @@ public class Venda implements Persistente {
 	private BigDecimal valorTotal;
 	
 	private Instant dataVenda;
-	
+
 	private Status status;
 	
 	public Venda() {
