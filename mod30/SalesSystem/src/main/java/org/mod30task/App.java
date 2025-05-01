@@ -1,4 +1,4 @@
-package org.mod24task;
+package org.mod30task;
 
 public class App {
     public static void main(String[] args) {
