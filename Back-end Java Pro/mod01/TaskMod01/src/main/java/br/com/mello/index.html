@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Lista Ligada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 2px;
+        }
+
+        .btn-push { background: #28a745; color: white; }
+        .btn-pop { background: #dc3545; color: white; }
+        .btn-insert { background: #007bff; color: white; }
+        .btn-remove { background: #fd7e14; color: white; }
+        .btn-get { background: #6f42c1; color: white; }
+        .btn-clear { background: #6c757d; color: white; }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .visualization {
+            margin: 30px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 200px;
+        }
+
+        .list-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            animation: nodeAppear 0.5s ease-out;
+        }
+
+        .node-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            min-width: 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .node-index {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+            margin: 0 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .null-indicator {
+            background: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .empty-list {
+            text-align: center;
+            color: #6c757d;
+            font-size: 18px;
+            padding: 40px;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #4facfe;
+            padding-left: 10px;
+        }
+
+        .highlight {
+            background: #ffeaa7 !important;
+            animation: highlight 1s ease-out;
+        }
+
+        @keyframes nodeAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes highlight {
+            0% { background: #ffeaa7; }
+            100% { background: transparent; }
+        }
+
+        .algorithm-explanation {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .algorithm-explanation h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .complexity-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .complexity-card {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .complexity-card h4 {
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .complexity-card span {
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🔗 Lista Ligada (Linked List)</h1>
+        <p>Visualização interativa da estrutura de dados ListDataStructure</p>
+    </div>
+
+    <div class="content">
+        <div class="controls">
+            <div class="control-group">
+                <label>Valor para Push:</label>
+                <input type="number" id="pushValue" value="10">
+                <button class="btn-push" onclick="pushNode()">Push (Adicionar no Final)</button>
+            </div>
+
+            <div class="control-group">
+                <label>Pop (Remover do Final):</label>
+                <button class="btn-pop" onclick="popNode()">Pop</button>
+            </div>
+
+            <div class="control-group">
+                <label>Inserir:</label>
+                <input type="number" id="insertIndex" placeholder="Índice" value="0">
+                <input type="number" id="insertValue" placeholder="Valor" value="5">
+                <button class="btn-insert" onclick="insertNode()">Insert</button>
+            </div>
+
+            <div class="control-group">
+                <label>Remover/Buscar:</label>
+                <input type="number" id="actionIndex" placeholder="Índice" value="0">
+                <button class="btn-remove" onclick="removeNode()">Remove</button>
+                <button class="btn-get" onclick="getElement()">Get Element</button>
+            </div>
+
+            <div class="control-group">
+                <button class="btn-clear" onclick="clearList()">Limpar Lista</button>
+            </div>
+        </div>
+
+        <div class="visualization">
+            <div id="listVisualization" class="list-container">
+                <div class="empty-list">
+                    Lista vazia - head = null<br>
+                    Adicione elementos usando Push ou Insert!
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>Tamanho da Lista</h3>
+                <p id="listSize">0</p>
+            </div>
+            <div class="info-card">
+                <h3>Head (Primeiro Nó)</h3>
+                <p id="headValue">null</p>
+            </div>
+            <div class="info-card">
+                <h3>Última Operação</h3>
+                <p id="lastOperation">Nenhuma</p>
+            </div>
+        </div>
+
+        <div class="algorithm-explanation">
+            <h3>📋 Análise Detalhada do Seu Código Java:</h3>
+
+            <div class="method-analysis">
+                <button class="method-btn active" onclick="showMethod('structure')">🏗️ Estrutura da Classe</button>
+                <button class="method-btn" onclick="showMethod('push')">➕ Método Push</button>
+                <button class="method-btn" onclick="showMethod('pop')">➖ Método Pop</button>
+                <button class="method-btn" onclick="showMethod('insert')">📍 Método Insert</button>
+                <button class="method-btn" onclick="showMethod('remove')">🗑️ Método Remove</button>
+                <button class="method-btn" onclick="showMethod('elementAt')">🔍 Método ElementAt</button>
+            </div>
+
+            <div id="method-structure" class="method-detail active">
+                <h4>🏗️ Estrutura da Classe ListDataStructure</h4>
+                <div class="code-section">
+                    <h5>Classe Node (Nó):</h5>
+                    <pre><code>public static class Node {
+    int value;      // Valor armazenado no nó
+    Node next;      // Referência para o próximo nó
+
+    public Node(int value) {
+        this.value = value;
+        this.next = null;  // Inicialmente não aponta para nada
+    }
+}</code></pre>
+                    <p><strong>💡 Lógica:</strong> Cada nó é como uma "caixa" que guarda um valor e tem uma "seta" apontando para a próxima caixa. Quando criado, a seta aponta para null (fim).</p>
+                </div>
+
+                <div class="code-section">
+                    <h5>Atributos da Lista:</h5>
+                    <pre><code>private Node head;      // Primeiro nó da lista
+private int count = 0;  // Contador de elementos</code></pre>
+                    <p><strong>💡 Lógica:</strong> <code>head</code> é nossa "entrada" na lista - sempre aponta para o primeiro elemento. <code>count</code> mantém o tamanho atualizado para não precisar contar toda vez.</p>
+                </div>
+            </div>
+
+            <div id="method-push" class="method-detail">
+                <h4>➕ Método Push - Adicionar no Final</h4>
+                <div class="code-section">
+                        <pre><code>public void push(Node node) {
+    if (head == null) {           // Lista vazia?
+        head = node;              // Novo nó vira o primeiro
+    } else {
+        Node current = head;      // Começa do primeiro nó
+        while (current.next != null) {  // Percorre até o último
+            current = current.next;
+        }
+        current.next = node;      // Conecta o último ao novo nó
+    }
+    count++;                      // Incrementa contador
+}</code></pre>
+                    <div class="logic-steps">
+                        <h5>🔄 Passo a Passo:</h5>
+                        <ol>
+                            <li><strong>Verificação:</strong> Se <code>head == null</code>, a lista está vazia</li>
+                            <li><strong>Lista Vazia:</strong> O novo nó se torna o <code>head</code></li>
+                            <li><strong>Lista com Elementos:</strong>
+                                <ul>
+                                    <li>Cria ponteiro <code>current</code> começando no <code>head</code></li>
+                                    <li>Loop: enquanto <code>current.next != null</code>, vai para o próximo nó</li>
+                                    <li>Quando <code>current.next == null</code>, achamos o último nó</li>
+                                    <li>Conecta: <code>current.next = node</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>Finalização:</strong> Incrementa <code>count</code></li>
+                        </ol>
+                    </div>
+                    <div class="complexity-note">
+                        <strong>⏱️ Complexidade O(n):</strong> No pior caso, precisa percorrer todos os n elementos para chegar ao final.
+                    </div>
+                </div>
+            </div>
+
+            <div id="method-pop" class="method-detail">
+                <h4>➖ Método Pop - Remover do Final</h4>
+                <div class="code-section">
+                        <pre><code>public Node pop() {
+    if (head == null) return null;    // Lista vazia
+
+    if (head.next == null) {          // Só tem 1 elemento
+        Node temp = head;
+        head = null;                  // Lista fica vazia
+        count--;
+        return temp;
+    }
+
+    Node current = head;
+    while (current.next.next != null) {  // Vai até o PENÚLTIMO
+        current = current.next;
+    }
+
+    Node removed = current.next;      // Guarda referência do último
+    current.next = null;              // Desconecta o último
+    count--;
+    return removed;
+}</code></pre>
+                    <div class="logic-steps">
+                        <h5>🔄 Passo a Passo:</h5>
+                        <ol>
+                            <li><strong>Lista Vazia:</strong> Retorna <code>null</code> imediatamente</li>
+                            <li><strong>Um Elemento:</strong> Remove o <code>head</code> e deixa a lista vazia</li>
+                            <li><strong>Múltiplos Elementos:</strong>
+                                <ul>
+                                    <li>Percorre até o <strong>penúltimo</strong> nó (<code>current.next.next != null</code>)</li>
+                                    <li>Guarda referência do último: <code>removed = current.next</code></li>
+                                    <li>Desconecta: <code>current.next = null</code></li>
+                                    <li>O penúltimo agora é o último!</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="complexity-note">
+                        <strong>⏱️ Por que O(n)?</strong> Precisa percorrer até o penúltimo elemento. Em uma lista com n elementos, faz n-2 iterações.
+                    </div>
+                </div>
+            </div>
+
+            <div id="method-insert" class="method-detail">
+                <h4>📍 Método Insert - Inserir em Posição Específica</h4>
+                <div class="code-section">
+                        <pre><code>public void insert(int index, Node node) {
+    if (index < 0 || index > count) {    // Validação
+        throw new IndexOutOfBoundsException("Invalid index");
+    }
+
+    if (index == 0) {                    // Inserir no início
+        node.next = head;
+        head = node;
+    } else {
+        Node current = head;
+        for (int i = 0; i < index - 1; i++) {  // Vai até posição anterior
+            current = current.next;
+        }
+        node.next = current.next;        // Novo nó aponta para o próximo
+        current.next = node;             // Anterior aponta para novo nó
+    }
+
+    count++;
+}</code></pre>
+                    <div class="logic-steps">
+                        <h5>🔄 Passo a Passo:</h5>
+                        <ol>
+                            <li><strong>Validação:</strong> Índice deve estar entre 0 e <code>count</code> (inclusive)</li>
+                            <li><strong>Inserir no Início (index = 0):</strong>
+                                <ul>
+                                    <li><code>node.next = head</code> (novo nó aponta para o antigo primeiro)</li>
+                                    <li><code>head = node</code> (novo nó vira o primeiro)</li>
+                                </ul>
+                            </li>
+                            <li><strong>Inserir no Meio/Final:</strong>
+                                <ul>
+                                    <li>Percorre até a posição <code>index - 1</code> (nó anterior)</li>
+                                    <li><code>node.next = current.next</code> (novo nó aponta para o próximo)</li>
+                                    <li><code>current.next = node</code> (anterior aponta para novo nó)</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="complexity-note">
+                        <strong>⚡ Otimização:</strong> Inserir no início é O(1), mas no meio/final é O(n) porque precisa percorrer até a posição.
+                    </div>
+                </div>
+            </div>
+
+            <div id="method-remove" class="method-detail">
+                <h4>🗑️ Método Remove - Remover por Índice</h4>
+                <div class="code-section">
+                        <pre><code>public void remove(int index) {
+    if (index < 0 || index >= count) {   // Validação
+        throw new IndexOutOfBoundsException("Invalid index");
+    }
+
+    if (index == 0) {                    // Remover primeiro
+        head = head.next;
+    } else {
+        Node current = head;
+        for (int i = 0; i < index - 1; i++) {  // Vai até anterior
+            current = current.next;
+        }
+        current.next = current.next.next;    // "Pula" o nó a ser removido
+    }
+
+    count--;
+}</code></pre>
+                    <div class="logic-steps">
+                        <h5>🔄 Passo a Passo:</h5>
+                        <ol>
+                            <li><strong>Validação:</strong> Índice deve estar entre 0 e <code>count-1</code></li>
+                            <li><strong>Remover Primeiro (index = 0):</strong>
+                                <ul>
+                                    <li><code>head = head.next</code> (segundo nó vira o primeiro)</li>
+                                    <li>O antigo primeiro fica "órfão" e é coletado pelo GC</li>
+                                </ul>
+                            </li>
+                            <li><strong>Remover do Meio/Final:</strong>
+                                <ul>
+                                    <li>Percorre até o nó anterior (<code>index - 1</code>)</li>
+                                    <li><code>current.next = current.next.next</code> (conecta anterior ao próximo)</li>
+                                    <li>O nó do meio fica "órfão" e é removido</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="complexity-note">
+                        <strong>🎯 Técnica do "Pulo":</strong> Não precisamos guardar referência do nó removido, apenas conectamos o anterior ao próximo.
+                    </div>
+                </div>
+            </div>
+
+            <div id="method-elementAt" class="method-detail">
+                <h4>🔍 Método ElementAt - Buscar por Índice</h4>
+                <div class="code-section">
+                        <pre><code>public Node elementAt(int index) {
+    if (index < 0 || index >= count) {   // Validação
+        throw new IndexOutOfBoundsException("Invalid index");
+    }
+
+    Node current = head;
+    for (int i = 0; i < index; i++) {    // Percorre até a posição
+        current = current.next;
+    }
+
+    return current;
+}</code></pre>
+                    <div class="logic-steps">
+                        <h5>🔄 Passo a Passo:</h5>
+                        <ol>
+                            <li><strong>Validação:</strong> Índice deve existir na lista</li>
+                            <li><strong>Percurso:</strong>
+                                <ul>
+                                    <li>Começa no <code>head</code> (posição 0)</li>
+                                    <li>Para cada índice, vai para <code>current.next</code></li>
+                                    <li>Após <code>index</code> iterações, chega na posição desejada</li>
+                                </ul>
+                            </li>
+                            <li><strong>Retorno:</strong> Retorna o nó encontrado</li>
+                        </ol>
+                    </div>
+                    <div class="complexity-note">
+                        <strong>📈 Comparação:</strong> Arrays têm acesso O(1) por índice, mas listas ligadas precisam percorrer O(n).
+                    </div>
+                </div>
+            </div>
+
+            <div class="complexity-info">
+                <div class="complexity-card">
+                    <h4>Push</h4>
+                    <span>O(n)</span>
+                </div>
+                <div class="complexity-card">
+                    <h4>Pop</h4>
+                    <span>O(n)</span>
+                </div>
+                <div class="complexity-card">
+                    <h4>Insert</h4>
+                    <span>O(n)</span>
+                </div>
+                <div class="complexity-card">
+                    <h4>Remove</h4>
+                    <span>O(n)</span>
+                </div>
+                <div class="complexity-card">
+                    <h4>Get</h4>
+                    <span>O(n)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="log" id="operationLog">
+            <div class="log-entry">Sistema iniciado - Lista vazia</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    class Node {
+        constructor(value) {
+            this.value = value;
+            this.next = null;
+        }
+    }
+
+    class ListDataStructure {
+        constructor() {
+            this.head = null;
+            this.count = 0;
+        }
+
+        push(node) {
+            if (this.head === null) {
+                this.head = node;
+                this.log(`Push: Adicionando primeiro nó (${node.value}) como head`);
+            } else {
+                let current = this.head;
+                let steps = 0;
+                while (current.next !== null) {
+                    current = current.next;
+                    steps++;
+                }
+                current.next = node;
+                this.log(`Push: Percorreu ${steps + 1} nós para adicionar ${node.value} no final`);
+            }
+            this.count++;
+            this.updateLastOperation(`Push(${node.value})`);
+        }
+
+        pop() {
+            if (this.head === null) {
+                this.log("Pop: Lista vazia, nada para remover");
+                return null;
+            }
+
+            if (this.head.next === null) {
+                const temp = this.head;
+                this.head = null;
+                this.count--;
+                this.log(`Pop: Removendo único nó (${temp.value}), lista ficou vazia`);
+                this.updateLastOperation(`Pop(${temp.value})`);
+                return temp;
+            }
+
+            let current = this.head;
+            let steps = 0;
+            while (current.next.next !== null) {
+                current = current.next;
+                steps++;
+            }
+
+            const removed = current.next;
+            current.next = null;
+            this.count--;
+            this.log(`Pop: Percorreu ${steps + 1} nós para remover o último (${removed.value})`);
+            this.updateLastOperation(`Pop(${removed.value})`);
+            return removed;
+        }
+
+        insert(index, node) {
+            if (index < 0 || index > this.count) {
+                this.log(`Insert: Índice ${index} inválido (deve estar entre 0 e ${this.count})`);
+                throw new Error("Invalid index");
+            }
+
+            if (index === 0) {
+                node.next = this.head;
+                this.head = node;
+                this.log(`Insert: Inserindo ${node.value} no início (índice 0)`);
+            } else {
+                let current = this.head;
+                for (let i = 0; i < index - 1; i++) {
+                    current = current.next;
+                }
+                node.next = current.next;
+                current.next = node;
+                this.log(`Insert: Inserindo ${node.value} no índice ${index}`);
+            }
+
+            this.count++;
+            this.updateLastOperation(`Insert(${index}, ${node.value})`);
+        }
+
+        remove(index) {
+            if (index < 0 || index >= this.count) {
+                this.log(`Remove: Índice ${index} inválido (deve estar entre 0 e ${this.count - 1})`);
+                throw new Error("Invalid index");
+            }
+
+            let removedValue;
+
+            if (index === 0) {
+                removedValue = this.head.value;
+                this.head = this.head.next;
+                this.log(`Remove: Removendo primeiro nó (${removedValue})`);
+            } else {
+                let current = this.head;
+                for (let i = 0; i < index - 1; i++) {
+                    current = current.next;
+                }
+                removedValue = current.next.value;
+                current.next = current.next.next;
+                this.log(`Remove: Removendo nó no índice ${index} (valor: ${removedValue})`);
+            }
+
+            this.count--;
+            this.updateLastOperation(`Remove(${index})`);
+        }
+
+        elementAt(index) {
+            if (index < 0 || index >= this.count) {
+                this.log(`ElementAt: Índice ${index} inválido (deve estar entre 0 e ${this.count - 1})`);
+                throw new Error("Invalid index");
+            }
+
+            let current = this.head;
+            for (let i = 0; i < index; i++) {
+                current = current.next;
+            }
+
+            this.log(`ElementAt: Elemento no índice ${index} é ${current.value}`);
+            this.updateLastOperation(`Get(${index}) = ${current.value}`);
+            return current;
+        }
+
+        size() {
+            return this.count;
+        }
+
+        log(message) {
+            const logElement = document.getElementById('operationLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        updateLastOperation(operation) {
+            document.getElementById('lastOperation').textContent = operation;
+        }
+    }
+
+    const list = new ListDataStructure();
+
+    function renderList() {
+        const container = document.getElementById('listVisualization');
+        container.innerHTML = '';
+
+        if (list.head === null) {
+            container.innerHTML = `
+                    <div class="empty-list">
+                        Lista vazia - head = null<br>
+                        Adicione elementos usando Push ou Insert!
+                    </div>
+                `;
+        } else {
+            let current = list.head;
+            let index = 0;
+
+            while (current !== null) {
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+
+                nodeDiv.innerHTML = `
+                        <div class="node-box">
+                            <div class="node-index">${index}</div>
+                            ${current.value}
+                        </div>
+                    `;
+
+                container.appendChild(nodeDiv);
+
+                if (current.next !== null) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.textContent = '→';
+                    container.appendChild(arrow);
+                }
+
+                current = current.next;
+                index++;
+            }
+
+            const nullDiv = document.createElement('div');
+            nullDiv.className = 'arrow';
+            nullDiv.textContent = '→';
+            container.appendChild(nullDiv);
+
+            const nullIndicator = document.createElement('div');
+            nullIndicator.className = 'null-indicator';
+            nullIndicator.textContent = 'null';
+            container.appendChild(nullIndicator);
+        }
+
+        updateInfo();
+    }
+
+    function updateInfo() {
+        document.getElementById('listSize').textContent = list.size();
+        document.getElementById('headValue').textContent = list.head ? list.head.value : 'null';
+    }
+
+    function pushNode() {
+        const value = parseInt(document.getElementById('pushValue').value);
+        if (isNaN(value)) {
+            alert('Por favor, insira um valor numérico válido');
+            return;
+        }
+
+        const node = new Node(value);
+        list.push(node);
+        renderList();
+
+        // Incrementa o valor para facilitar testes
+        document.getElementById('pushValue').value = value + 1;
+    }
+
+    function popNode() {
+        const removed = list.pop();
+        if (removed) {
+            renderList();
+        } else {
+            alert('Lista está vazia!');
+        }
+    }
+
+    function insertNode() {
+        const index = parseInt(document.getElementById('insertIndex').value);
+        const value = parseInt(document.getElementById('insertValue').value);
+
+        if (isNaN(index) || isNaN(value)) {
+            alert('Por favor, insira valores numéricos válidos');
+            return;
+        }
+
+        try {
+            const node = new Node(value);
+            list.insert(index, node);
+            renderList();
+        } catch (error) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    function removeNode() {
+        const index = parseInt(document.getElementById('actionIndex').value);
+
+        if (isNaN(index)) {
+            alert('Por favor, insira um índice válido');
+            return;
+        }
+
+        try {
+            list.remove(index);
+            renderList();
+        } catch (error) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    function getElement() {
+        const index = parseInt(document.getElementById('actionIndex').value);
+
+        if (isNaN(index)) {
+            alert('Por favor, insira um índice válido');
+            return;
+        }
+
+        try {
+            const element = list.elementAt(index);
+            alert(`Elemento no índice ${index}: ${element.value}`);
+
+            // Destaca o elemento visualmente
+            const nodes = document.querySelectorAll('.node-box');
+            if (nodes[index]) {
+                nodes[index].classList.add('highlight');
+                setTimeout(() => {
+                    nodes[index].classList.remove('highlight');
+                }, 2000);
+            }
+        } catch (error) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    function clearList() {
+        list.head = null;
+        list.count = 0;
+        list.log("Lista limpa - todos os nós removidos");
+        list.updateLastOperation("Clear()");
+        renderList();
+    }
+
+    // Inicializa com alguns valores de exemplo
+    function initializeExample() {
+        const exampleValues = [10, 20, 30];
+        exampleValues.forEach(value => {
+            const node = new Node(value);
+            list.push(node);
+        });
+        renderList();
+    }
+
+    // Inicializa a visualização
+    renderList();
+</script>
+</body>
+</html>
